@@ -4,6 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>COMPSHOP HOMEPAGE - DO NOT CLOSE</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bungee+Inline&display=swap');
 
@@ -376,6 +377,20 @@
     .announce-display.empty {
       color: var(--muted); font-style: italic; font-size: 18px;
     }
+    /* announcement image-left layout */
+    .announce-content {
+      display: flex; gap: 22px; align-items: flex-start;
+    }
+    .announce-img-wrap {
+      flex-shrink: 0; width: 190px; height: 130px;
+      border-radius: 8px; overflow: hidden;
+      border: 1px solid rgba(0,229,255,0.2);
+      background: rgba(255,255,255,0.03);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .announce-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+    .announce-img-placeholder { color: var(--muted); font-size: 12px; font-family: 'Share Tech Mono', monospace; text-align: center; padding: 8px; }
+    .announce-text-wrap { flex: 1; }
 
     /* ── ADMIN OVERLAY ── */
     .admin-overlay {
@@ -697,6 +712,144 @@
       letter-spacing: 3px; text-transform: uppercase; text-align: center;
     }
     .footer-line b { color: var(--orange); font-weight: 400; }
+    /* ════════════════
+       ADMIN PANEL
+    ════════════════ */
+    .admin-overlay {
+      display: none; position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+      align-items: center; justify-content: center;
+    }
+    .admin-overlay.open { display: flex; }
+    .admin-panel-box {
+      background: #0a0f1e;
+      border: 1.5px solid rgba(0,229,255,0.3);
+      border-radius: 14px; padding: 32px 28px;
+      width: 92%; max-width: 540px;
+      box-shadow: 0 0 60px rgba(0,229,255,0.12);
+      max-height: 90vh; overflow-y: auto;
+    }
+    .admin-panel-title {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 15px; letter-spacing: 4px;
+      color: var(--cyan); text-transform: uppercase;
+      text-align: center; margin-bottom: 24px;
+    }
+    .admin-section {
+      margin-bottom: 20px;
+    }
+    .admin-section-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px; color: var(--muted);
+      letter-spacing: 3px; text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .admin-textarea {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(0,229,255,0.2);
+      border-radius: 6px; padding: 11px 14px;
+      color: #fff; font-family: Helvetica, Arial, sans-serif;
+      font-size: 15px; outline: none;
+      resize: vertical; min-height: 70px;
+      transition: border-color 0.2s;
+    }
+    .admin-textarea:focus { border-color: var(--cyan); }
+    .admin-textarea::placeholder { color: var(--muted); }
+    .admin-input {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(0,229,255,0.2);
+      border-radius: 6px; padding: 11px 14px;
+      color: #fff; font-family: Helvetica, Arial, sans-serif;
+      font-size: 15px; outline: none;
+      transition: border-color 0.2s;
+    }
+    .admin-input:focus { border-color: var(--cyan); }
+    .admin-input::placeholder { color: var(--muted); }
+    .admin-img-preview {
+      width: 100%; height: 140px;
+      border-radius: 8px; overflow: hidden;
+      border: 1px dashed rgba(255,196,0,0.3);
+      background: rgba(255,255,255,0.03);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 8px; cursor: pointer;
+    }
+    .admin-img-preview img { width: 100%; height: 100%; object-fit: cover; }
+    .admin-img-hint { color: var(--muted); font-size: 13px; font-family: 'Share Tech Mono', monospace; }
+    #adminImgInput { display: none; }
+    .admin-save-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #00b8d9, #0077aa);
+      border: none; border-radius: 8px; padding: 13px;
+      color: #fff; font-family: Helvetica, Arial, sans-serif;
+      font-size: 16px; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; cursor: pointer;
+      margin-top: 8px; transition: filter 0.2s;
+    }
+    .admin-save-btn:hover { filter: brightness(1.15); }
+    .admin-save-btn:disabled { filter: brightness(0.6); cursor: not-allowed; }
+    .admin-cancel-btn {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px; padding: 11px;
+      color: var(--muted); font-family: Helvetica, Arial, sans-serif;
+      font-size: 15px; cursor: pointer; margin-top: 8px;
+      transition: color 0.2s;
+    }
+    .admin-cancel-btn:hover { color: #fff; }
+    .admin-status {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 12px; letter-spacing: 1px;
+      text-align: center; min-height: 18px;
+      margin-top: 10px;
+    }
+    .admin-status.ok  { color: var(--green); }
+    .admin-status.err { color: var(--red); }
+    /* logo clickable */
+    .logo-name { cursor: pointer; user-select: none; }
+
+    /* PASSWORD OVERLAY */
+    .pw-overlay {
+      display: none; position: fixed; inset: 0; z-index: 199;
+      background: rgba(0,0,0,0.8); backdrop-filter: blur(6px);
+      align-items: center; justify-content: center;
+    }
+    .pw-overlay.open { display: flex; }
+    .pw-box {
+      background: #0a0f1e;
+      border: 1.5px solid rgba(0,229,255,0.3);
+      border-radius: 12px; padding: 28px 24px;
+      width: 88%; max-width: 360px;
+      text-align: center;
+    }
+    .pw-title {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 13px; color: var(--cyan);
+      letter-spacing: 3px; margin-bottom: 18px;
+    }
+    .pw-input {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(0,229,255,0.25);
+      border-radius: 6px; padding: 12px;
+      color: #fff; font-size: 18px;
+      letter-spacing: 4px; text-align: center;
+      outline: none; margin-bottom: 8px;
+    }
+    .pw-err { color: var(--red); font-size: 12px; min-height: 16px; font-family: 'Share Tech Mono', monospace; }
+    .pw-btn {
+      width: 100%; background: linear-gradient(135deg, var(--cyan), #005577);
+      border: none; border-radius: 6px; padding: 12px;
+      color: #fff; font-size: 15px; font-weight: 700;
+      cursor: pointer; margin-top: 6px;
+    }
+    .pw-cancel {
+      width: 100%; background: none; border: none;
+      color: var(--muted); font-size: 13px; cursor: pointer;
+      margin-top: 8px; padding: 4px;
+    }
   </style>
 </head>
 <body>
@@ -719,7 +872,7 @@
   <!-- HEADER -->
   <header>
     <div class="logo">
-      <div class="logo-name">CompShop</div>
+      <div class="logo-name" onclick="handleLogoClick()">CompShop</div>
       <div class="logo-sub">// Internet Café</div>
     </div>
     <div class="header-split">
@@ -804,7 +957,14 @@
       <div class="announce-top">
         <div class="announce-label">📢 Shop Announcement</div>
       </div>
-      <div class="announce-display empty" id="announceDisplay">Walang announcement sa ngayon. Enjoy your session!</div>
+      <div class="announce-content">
+        <div class="announce-img-wrap" id="announceImgWrap">
+          <div class="announce-img-placeholder" id="announceImgPlaceholder">📷 Walang larawan</div>
+        </div>
+        <div class="announce-text-wrap">
+          <div class="announce-display empty" id="announceDisplay">Walang announcement sa ngayon. Enjoy your session!</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -920,71 +1080,322 @@
 
 </div>
 
-<!-- ══ ADMIN OVERLAY — ANNOUNCEMENT ══ -->
+<!-- ══ PASSWORD OVERLAY ══ -->
+<div class="pw-overlay" id="pwOverlay">
+  <div class="pw-box">
+    <div class="pw-title">🔐 ADMIN ACCESS</div>
+    <input class="pw-input" type="password" id="pwInput" placeholder="••••••••" autocomplete="off"/>
+    <div class="pw-err" id="pwErr"></div>
+    <button class="pw-btn" onclick="checkPassword()">ENTER</button>
+    <button class="pw-cancel" onclick="closePwOverlay()">Kanselahin</button>
+  </div>
+</div>
+
+<!-- ══ ADMIN PANEL OVERLAY ══ -->
 <div class="admin-overlay" id="adminOverlay">
-  <div class="admin-panel">
-    <div class="admin-title">⚙ Edit Announcement</div>
-    <textarea class="admin-textarea" id="adminText" placeholder="I-type ang announcement dito..."></textarea>
-    <input class="admin-pw" type="password" id="adminPw" placeholder="I-enter ang admin password" autocomplete="off"/>
-    <div class="admin-err" id="adminErr"></div>
-    <div class="admin-btns">
-      <button class="admin-save" onclick="saveAnnouncement()">💾 I-Save</button>
-      <button class="admin-cancel" onclick="closeAdmin('adminOverlay')">Kanselahin</button>
+  <div class="admin-panel-box">
+    <div class="admin-panel-title">⚙️ CompShop Admin Panel</div>
+
+    <!-- TICKER -->
+    <div class="admin-section">
+      <div class="admin-section-label">📢 Notice / Ticker Message</div>
+      <textarea class="admin-textarea" id="adminTicker" placeholder="I-type ang scrolling message..."></textarea>
     </div>
+
+    <!-- ANNOUNCEMENT -->
+    <div class="admin-section">
+      <div class="admin-section-label">📋 Shop Announcement — Text</div>
+      <textarea class="admin-textarea" id="adminAnnouncement" placeholder="I-type ang announcement..."></textarea>
+    </div>
+
+    <!-- ANNOUNCEMENT IMAGE -->
+    <div class="admin-section">
+      <div class="admin-section-label">📋 Shop Announcement — Image (i-click para mag-upload)</div>
+      <div class="admin-img-preview" id="adminAnnounceImgPreview" onclick="document.getElementById('adminAnnounceImgInput').click()">
+        <div class="admin-img-hint" id="adminAnnounceImgHint">📷 I-click para mag-upload ng larawan</div>
+      </div>
+      <input type="file" id="adminAnnounceImgInput" accept="image/*" onchange="handleAnnounceImg(event)" style="display:none"/>
+      <button onclick="clearAnnounceImg()" style="background:none;border:none;color:var(--muted);font-size:12px;font-family:'Share Tech Mono',monospace;cursor:pointer;letter-spacing:1px;">✕ ALISIN ANG LARAWAN</button>
+    </div>
+
+    <!-- GAME ALERT TITLE -->
+    <div class="admin-section">
+      <div class="admin-section-label">🎮 New Game Alert — Title</div>
+      <input class="admin-input" type="text" id="adminGameTitle" placeholder="e.g. 🎮 CRAZY GAMES"/>
+    </div>
+
+    <!-- GAME ALERT DESC -->
+    <div class="admin-section">
+      <div class="admin-section-label">🎮 New Game Alert — Description</div>
+      <textarea class="admin-textarea" id="adminGameDesc" placeholder="I-type ang description..." style="min-height:100px;"></textarea>
+    </div>
+
+    <!-- GAME ALERT IMAGE -->
+    <div class="admin-section">
+      <div class="admin-section-label">🖼️ New Game Alert — Image (i-click para mag-upload)</div>
+      <div class="admin-img-preview" id="adminImgPreview" onclick="document.getElementById('adminImgInput').click()">
+        <div class="admin-img-hint" id="adminImgHint">📷 I-click para mag-upload ng larawan</div>
+      </div>
+      <input type="file" id="adminImgInput" accept="image/*" onchange="handleAdminImg(event)"/>
+      <button onclick="clearAdminImg()" style="background:none;border:none;color:var(--muted);font-size:12px;font-family:'Share Tech Mono',monospace;cursor:pointer;letter-spacing:1px;">✕ ALISIN ANG LARAWAN</button>
+    </div>
+
+    <div class="admin-status" id="adminStatus"></div>
+    <button class="admin-save-btn" id="adminSaveBtn" onclick="saveAllToSupabase()">💾 I-SAVE LAHAT</button>
+    <button class="admin-cancel-btn" onclick="closeAdminPanel()">Isara ang Admin Panel</button>
   </div>
-</div>
-
-<!-- ══ ADMIN OVERLAY — TICKER ══ -->
-<div class="admin-overlay" id="tickerAdminOverlay">
-  <div class="admin-panel">
-    <div class="admin-title">⚙ Edit Scrolling Text</div>
-    <textarea class="admin-textarea" id="tickerAdminText" placeholder="I-type ang bagong scrolling message..."></textarea>
-    <input class="admin-pw" type="password" id="tickerAdminPw" placeholder="I-enter ang admin password" autocomplete="off"/>
-    <div class="admin-err" id="tickerAdminErr"></div>
-    <div class="admin-btns">
-      <button class="admin-save" onclick="saveTickerAdmin()">💾 I-Save</button>
-      <button class="admin-cancel" onclick="closeAdmin('tickerAdminOverlay')">Kanselahin</button>
-    </div>
-  </div>
-</div>
-
-
-
-<!-- ══ ADMIN OVERLAY — GAME ALERT ══ -->
-<div class="admin-overlay" id="gameAlertAdminOverlay">
-  <div class="admin-panel" style="max-width:560px;">
-    <div class="admin-title" style="color:var(--gold)">🎮 Edit New Game Alert</div>
-
-    <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:2px;margin-bottom:6px;">GAME TITLE</div>
-    <input class="admin-pw" type="text" id="gaAdminTitle" placeholder="e.g. Valorant: New Episode!" style="font-size:16px;letter-spacing:0;border-color:rgba(255,196,0,0.3);margin-bottom:14px;" autocomplete="off"/>
-
-    <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:2px;margin-bottom:6px;">DESCRIPTION</div>
-    <textarea class="admin-textarea" id="gaAdminDesc" placeholder="I-type ang description ng game dito..." style="border-color:rgba(255,196,0,0.25);min-height:80px;"></textarea>
-
-    <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:2px;margin-bottom:6px;">LARAWAN (i-click para pumili)</div>
-    <div class="ga-img-preview" id="gaAdminImgPreview" onclick="document.getElementById('gaImageInput').click()">
-      <div class="ga-img-hint" id="gaAdminImgHint">📷 I-click dito para mag-upload ng larawan</div>
-    </div>
-    <input type="file" id="gaImageInput" accept="image/*" onchange="handleGaImage(event)"/>
-    <button onclick="clearGaImage()" style="background:none;border:none;color:var(--muted);font-size:12px;font-family:'Share Tech Mono',monospace;cursor:pointer;margin-bottom:14px;letter-spacing:1px;">✕ ALISIN ANG LARAWAN</button>
-
-    <input class="admin-pw" type="password" id="gaAdminPw" placeholder="I-enter ang admin password" autocomplete="off"/>
-    <div class="admin-err" id="gaAdminErr"></div>
-    <div class="admin-btns">
-      <button class="admin-save" onclick="saveGameAlert()" style="background:linear-gradient(135deg,#cc8800,#ffc400);color:#000;">💾 I-Save</button>
-      <button class="admin-cancel" onclick="document.getElementById('gameAlertAdminOverlay').classList.remove('open')">Kanselahin</button>
-    </div>
-  </div>
-</div>
-
-<!-- ══ SAVE HINT BOX ══ -->
-<div id="saveHintBox" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:200;background:#0d1428;border:1.5px solid var(--cyan);border-radius:10px;padding:16px 24px;max-width:600px;width:90%;box-shadow:0 0 30px rgba(0,229,255,0.2);align-items:flex-start;gap:12px;">
-  <span style="font-size:18px;flex-shrink:0;">💾</span>
-  <p id="saveHintMsg" style="font-family:'Share Tech Mono',monospace;font-size:12px;color:#b0c4d8;letter-spacing:1px;line-height:1.7;margin:0;"></p>
-  <button onclick="document.getElementById('saveHintBox').style.display='none'" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;flex-shrink:0;align-self:flex-start;">✕</button>
 </div>
 
 <script>
+  /* ══ SUPABASE CONFIG ══ */
+  const SUPABASE_URL  = 'https://sdtiobfyzgpudrjxetkh.supabase.co';
+  const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkdGlvYmZ5emdwdWRyanhldGtoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxNDQ4MDAsImV4cCI6MjEwMjcyMDgwMH0.Auq7BKkJ7_asQSBpOVjXHIRmXXZ693oRs7UmyxA9NfQ';
+  const ADMIN_PASS    = 'compshop2024';
+
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  /* ══ IMAGE COMPRESSION (max 800px, quality 0.7) ══ */
+  function compressImage(dataUrl, maxW, maxH, quality) {
+    return new Promise(resolve => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+        if (h > maxH) { w = Math.round(w * maxH / h); h = maxH; }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality || 0.7));
+      };
+      img.src = dataUrl;
+    });
+  }
+
+  /* ══ LOGO CLICK (3x to open) ══ */
+  let logoClicks = 0, logoTimer = null;
+  function handleLogoClick() {
+    logoClicks++;
+    clearTimeout(logoTimer);
+    logoTimer = setTimeout(() => { logoClicks = 0; }, 1500);
+    if (logoClicks >= 3) {
+      logoClicks = 0;
+      openPwOverlay();
+    }
+  }
+
+  /* ══ PASSWORD ══ */
+  function openPwOverlay() {
+    document.getElementById('pwInput').value = '';
+    document.getElementById('pwErr').textContent = '';
+    document.getElementById('pwOverlay').classList.add('open');
+    setTimeout(() => document.getElementById('pwInput').focus(), 100);
+  }
+  function closePwOverlay() {
+    document.getElementById('pwOverlay').classList.remove('open');
+  }
+  function checkPassword() {
+    const val = document.getElementById('pwInput').value;
+    if (val === ADMIN_PASS) {
+      closePwOverlay();
+      openAdminPanel();
+    } else {
+      document.getElementById('pwErr').textContent = '✕ Mali ang password.';
+      document.getElementById('pwInput').value = '';
+      document.getElementById('pwInput').focus();
+    }
+  }
+  document.getElementById('pwInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') checkPassword();
+  });
+  document.getElementById('pwOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closePwOverlay();
+  });
+
+  /* ══ ADMIN PANEL ══ */
+  let adminImgBase64 = null;
+  let adminAnnounceImgBase64 = null;
+
+  async function openAdminPanel() {
+    const { data } = await sb.from('compshop_content').select('id, value');
+    if (data) {
+      data.forEach(row => {
+        if (row.id === 'ticker')            document.getElementById('adminTicker').value       = row.value || '';
+        if (row.id === 'announcement')      document.getElementById('adminAnnouncement').value  = row.value || '';
+        if (row.id === 'announcement_img')  { adminAnnounceImgBase64 = row.value || null; renderAnnounceImgPreview(); }
+        if (row.id === 'game_alert_title')  document.getElementById('adminGameTitle').value     = row.value || '';
+        if (row.id === 'game_alert_desc')   document.getElementById('adminGameDesc').value      = row.value || '';
+        if (row.id === 'game_alert_img')    { adminImgBase64 = row.value || null; renderAdminImgPreview(); }
+      });
+    }
+    document.getElementById('adminStatus').textContent = '';
+    document.getElementById('adminOverlay').classList.add('open');
+  }
+
+  function closeAdminPanel() { document.getElementById('adminOverlay').classList.remove('open'); }
+  document.getElementById('adminOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeAdminPanel();
+  });
+
+  /* ══ ANNOUNCEMENT IMAGE ══ */
+  function handleAnnounceImg(e) {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async ev => {
+      adminAnnounceImgBase64 = await compressImage(ev.target.result, 600, 400, 0.7);
+      renderAnnounceImgPreview();
+    };
+    reader.readAsDataURL(file);
+  }
+  function clearAnnounceImg() {
+    adminAnnounceImgBase64 = null;
+    document.getElementById('adminAnnounceImgInput').value = '';
+    renderAnnounceImgPreview();
+  }
+  function renderAnnounceImgPreview() {
+    const preview = document.getElementById('adminAnnounceImgPreview');
+    const hint    = document.getElementById('adminAnnounceImgHint');
+    const existing = preview.querySelector('img');
+    if (existing) existing.remove();
+    if (adminAnnounceImgBase64) {
+      hint.style.display = 'none';
+      const img = document.createElement('img');
+      img.src = adminAnnounceImgBase64;
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+      preview.appendChild(img);
+    } else { hint.style.display = ''; }
+  }
+
+  /* ══ GAME ALERT IMAGE ══ */
+  function handleAdminImg(e) {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async ev => {
+      adminImgBase64 = await compressImage(ev.target.result, 600, 400, 0.7);
+      renderAdminImgPreview();
+    };
+    reader.readAsDataURL(file);
+  }
+  function clearAdminImg() {
+    adminImgBase64 = null;
+    document.getElementById('adminImgInput').value = '';
+    renderAdminImgPreview();
+  }
+  function renderAdminImgPreview() {
+    const preview = document.getElementById('adminImgPreview');
+    const hint    = document.getElementById('adminImgHint');
+    const existing = preview.querySelector('img');
+    if (existing) existing.remove();
+    if (adminImgBase64) {
+      hint.style.display = 'none';
+      const img = document.createElement('img');
+      img.src = adminImgBase64;
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+      preview.appendChild(img);
+    } else { hint.style.display = ''; }
+  }
+
+  /* ══ SAVE TO SUPABASE (all fields, auto-overwrite) ══ */
+  async function saveAllToSupabase() {
+    const btn    = document.getElementById('adminSaveBtn');
+    const status = document.getElementById('adminStatus');
+    btn.disabled = true;
+    status.className = 'admin-status';
+    status.textContent = '⏳ Sine-save...';
+
+    const updates = [
+      { id: 'ticker',           value: document.getElementById('adminTicker').value.trim() },
+      { id: 'announcement',     value: document.getElementById('adminAnnouncement').value.trim() },
+      { id: 'announcement_img', value: adminAnnounceImgBase64 || '' },
+      { id: 'game_alert_title', value: document.getElementById('adminGameTitle').value.trim() },
+      { id: 'game_alert_desc',  value: document.getElementById('adminGameDesc').value.trim() },
+      { id: 'game_alert_img',   value: adminImgBase64 || '' },
+    ];
+
+    try {
+      for (const row of updates) {
+        const { error } = await sb.from('compshop_content')
+          .upsert({ id: row.id, value: row.value, updated_at: new Date().toISOString() });
+        if (error) throw error;
+      }
+      status.className = 'admin-status ok';
+      status.textContent = '✅ Na-save! Mag-a-update ang lahat ng PC sa susunod na refresh.';
+      await loadFromSupabase();
+    } catch(err) {
+      status.className = 'admin-status err';
+      status.textContent = '✕ Error: ' + err.message;
+    }
+    btn.disabled = false;
+  }
+
+  /* ══ LOAD FROM SUPABASE ══ */
+  async function loadFromSupabase() {
+    try {
+      const { data, error } = await sb.from('compshop_content').select('id, value');
+      if (error || !data) return;
+
+      data.forEach(row => {
+        /* TICKER */
+        if (row.id === 'ticker') {
+          const txt = (row.value || TICKER_TEXT);
+          const full = txt + ' \u00a0•\u00a0 ' + txt + ' \u00a0•\u00a0 ' + txt + ' \u00a0•\u00a0 ';
+          document.getElementById('tickerSpan1').textContent = full;
+          document.getElementById('tickerSpan2').textContent = full;
+        }
+
+        /* ANNOUNCEMENT TEXT */
+        if (row.id === 'announcement') {
+          const el = document.getElementById('announceDisplay');
+          if (row.value && row.value.trim()) { el.textContent = row.value; el.classList.remove('empty'); }
+          else { el.textContent = 'Walang announcement sa ngayon. Enjoy your session!'; el.classList.add('empty'); }
+        }
+
+        /* ANNOUNCEMENT IMAGE */
+        if (row.id === 'announcement_img') {
+          const wrap = document.getElementById('announceImgWrap');
+          const placeholder = document.getElementById('announceImgPlaceholder');
+          const existing = wrap.querySelector('img');
+          if (existing) existing.remove();
+          if (row.value && row.value.trim()) {
+            placeholder.style.display = 'none';
+            const img = document.createElement('img');
+            img.src = row.value;
+            wrap.appendChild(img);
+          } else {
+            placeholder.style.display = '';
+          }
+        }
+
+        /* GAME ALERT TITLE */
+        if (row.id === 'game_alert_title') {
+          const el = document.getElementById('gaTitle');
+          if (row.value && row.value.trim()) { el.textContent = row.value; el.classList.remove('empty'); }
+          else { el.textContent = 'Walang bagong game alert sa ngayon.'; el.classList.add('empty'); }
+        }
+
+        /* GAME ALERT DESC */
+        if (row.id === 'game_alert_desc') {
+          const el = document.getElementById('gaDesc');
+          if (row.value && row.value.trim()) { el.textContent = row.value; el.classList.remove('empty'); }
+          else { el.textContent = 'Check back later!'; el.classList.add('empty'); }
+        }
+
+        /* GAME ALERT IMAGE */
+        if (row.id === 'game_alert_img') {
+          const imgWrap = document.getElementById('gaImgWrap');
+          const imgPlaceholder = document.getElementById('gaImgPlaceholder');
+          const existingImg = imgWrap.querySelector('img');
+          if (existingImg) existingImg.remove();
+          if (row.value && row.value.trim()) {
+            imgPlaceholder.style.display = 'none';
+            const img = document.createElement('img');
+            img.src = row.value;
+            imgWrap.appendChild(img);
+          } else { imgPlaceholder.style.display = ''; }
+        }
+      });
+    } catch(e) { console.log('Supabase load error:', e); }
+  }
+</script>
   /* ════════════════════════════════════════════
      COMPSHOP CONFIG — EDIT THESE TO UPDATE ALL PCs
      I-save ang file pagkatapos mag-edit, tapos
@@ -1162,134 +1573,17 @@
     }
   }
 
-  /* ── ADMIN: ANNOUNCEMENT ── */
-  function openAdmin() {
-    document.getElementById('adminText').value = ANNOUNCEMENT_TEXT;
-    document.getElementById('adminPw').value = '';
-    document.getElementById('adminErr').textContent = '';
-    document.getElementById('adminOverlay').classList.add('open');
-    setTimeout(() => document.getElementById('adminText').focus(), 100);
-  }
-  function saveAnnouncement() {
-    const pw  = document.getElementById('adminPw').value;
-    const err = document.getElementById('adminErr');
-    if (pw !== ADMIN_PASS) { err.textContent = '✕ Mali ang password. Subukan ulit.'; return; }
-    const txt = document.getElementById('adminText').value.trim();
-    const el = document.getElementById('announceDisplay');
-    if (txt) { el.textContent = txt; el.classList.remove('empty'); }
-    else { el.textContent = 'Walang announcement sa ngayon. Enjoy your session!'; el.classList.add('empty'); }
-    document.getElementById('adminOverlay').classList.remove('open');
-    showCopyHint('ANNOUNCEMENT_TEXT', txt);
-  }
-
-  /* ── ADMIN: TICKER ── */
-  function openTickerAdmin() {
-    document.getElementById('tickerAdminText').value = TICKER_TEXT;
-    document.getElementById('tickerAdminPw').value = '';
-    document.getElementById('tickerAdminErr').textContent = '';
-    document.getElementById('tickerAdminOverlay').classList.add('open');
-    setTimeout(() => document.getElementById('tickerAdminText').focus(), 100);
-  }
-  function saveTickerAdmin() {
-    const pw  = document.getElementById('tickerAdminPw').value;
-    const err = document.getElementById('tickerAdminErr');
-    if (pw !== ADMIN_PASS) { err.textContent = '✕ Mali ang password. Subukan ulit.'; return; }
-    const txt = document.getElementById('tickerAdminText').value.trim();
-    const full = txt + ' \u00a0•\u00a0 ' + txt + ' \u00a0•\u00a0 ' + txt + ' \u00a0•\u00a0 ';
-    document.getElementById('tickerSpan1').textContent = full;
-    document.getElementById('tickerSpan2').textContent = full;
-    document.getElementById('tickerAdminOverlay').classList.remove('open');
-    showCopyHint('TICKER_TEXT', txt);
-  }
-
-  /* ── ADMIN: GAME ALERT ── */
-  let gaTempImage = GAME_ALERT_IMG || null;
-
-  function openGameAlertAdmin() {
-    document.getElementById('gaAdminTitle').value = GAME_ALERT_TITLE;
-    document.getElementById('gaAdminDesc').value  = GAME_ALERT_DESC;
-    document.getElementById('gaAdminPw').value    = '';
-    document.getElementById('gaAdminErr').textContent = '';
-    gaTempImage = GAME_ALERT_IMG || null;
-    renderGaAdminPreview();
-    document.getElementById('gameAlertAdminOverlay').classList.add('open');
-  }
-  function renderGaAdminPreview() {
-    const preview = document.getElementById('gaAdminImgPreview');
-    const hint    = document.getElementById('gaAdminImgHint');
-    const existing = preview.querySelector('img');
-    if (existing) existing.remove();
-    if (gaTempImage) {
-      hint.style.display = 'none';
-      const img = document.createElement('img');
-      img.src = gaTempImage;
-      img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
-      preview.appendChild(img);
-    } else { hint.style.display = ''; }
-  }
-  function handleGaImage(e) {
-    const file = e.target.files[0]; if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(ev) { gaTempImage = ev.target.result; renderGaAdminPreview(); };
-    reader.readAsDataURL(file);
-  }
-  function clearGaImage() {
-    gaTempImage = null;
-    document.getElementById('gaImageInput').value = '';
-    renderGaAdminPreview();
-  }
-  function saveGameAlert() {
-    const pw  = document.getElementById('gaAdminPw').value;
-    const err = document.getElementById('gaAdminErr');
-    if (pw !== ADMIN_PASS) { err.textContent = '✕ Mali ang password. Subukan ulit.'; return; }
-    const title = document.getElementById('gaAdminTitle').value.trim();
-    const desc  = document.getElementById('gaAdminDesc').value.trim();
-    // update display immediately
-    const titleEl = document.getElementById('gaTitle');
-    const descEl  = document.getElementById('gaDesc');
-    const imgWrap = document.getElementById('gaImgWrap');
-    const imgPlaceholder = document.getElementById('gaImgPlaceholder');
-    titleEl.textContent = title || 'Walang bagong game alert sa ngayon.';
-    title ? titleEl.classList.remove('empty') : titleEl.classList.add('empty');
-    descEl.textContent = desc || 'Check back later!';
-    desc ? descEl.classList.remove('empty') : descEl.classList.add('empty');
-    const existingImg = imgWrap.querySelector('img');
-    if (existingImg) existingImg.remove();
-    if (gaTempImage) {
-      imgPlaceholder.style.display = 'none';
-      const img = document.createElement('img'); img.src = gaTempImage;
-      imgWrap.appendChild(img);
-    } else { imgPlaceholder.style.display = ''; }
-    document.getElementById('gameAlertAdminOverlay').classList.remove('open');
-    showCopyHint('GAME_ALERT', title);
-  }
-
-  /* ── COPY HINT: remind admin to save the file ── */
-  function showCopyHint(field, value) {
-    const box = document.getElementById('saveHintBox');
-    const msg = document.getElementById('saveHintMsg');
-    msg.textContent = '✅ Na-update ang display! Para permanent sa lahat ng PC: i-edit ang HTML file at baguhin ang ' + field + ' variable sa taas ng script, tapos i-save at i-refresh ang mga PC.';
-    box.style.display = 'flex';
-    setTimeout(() => box.style.display = 'none', 10000);
-  }
-
-  /* ── SHARED ── */
-  function closeAdmin(id) { document.getElementById(id).classList.remove('open'); }
-  ['adminOverlay','tickerAdminOverlay','gameAlertAdminOverlay'].forEach(id => {
-    document.getElementById(id).addEventListener('click', function(e) {
-      if (e.target === this) this.classList.remove('open');
-    });
-  });
-  document.getElementById('adminPw').addEventListener('keydown', e => { if(e.key==='Enter') saveAnnouncement(); });
-  document.getElementById('tickerAdminPw').addEventListener('keydown', e => { if(e.key==='Enter') saveTickerAdmin(); });
-  document.getElementById('gaAdminPw').addEventListener('keydown', e => { if(e.key==='Enter') saveGameAlert(); });
+  /* ── SHARED (kept for compatibility) ── */
+  function closeAdmin(id) { document.getElementById(id) && document.getElementById(id).classList.remove('open'); }
 
   loadTicker();
   loadAnnouncement();
   loadGameAlert();
 
-  /* ── PREVENT CLOSING THE TAB/WINDOW ── */
-  // AUTO-REFRESH every 10 minutes (600,000 ms)
+  // Load live data from Supabase (overrides hardcoded defaults)
+  loadFromSupabase();
+
+  // AUTO-REFRESH every 10 minutes
   setTimeout(function() { location.reload(); }, 600000);
 </script>
 

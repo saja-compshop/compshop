@@ -887,7 +887,7 @@
         <div class="cd-timer" id="cdTimer">--:--:--</div>
         <div class="cd-bar-track"><div class="cd-bar-fill" id="cdBar"></div></div>
         <div class="cd-status" id="cdStatus">Open — enjoy your session!</div>
-        <div class="closing-time">🔒 Closes 9:00 PM</div>
+        <div class="closing-time" id="closingTimeLabel">🔒 Closes 9:00 PM</div>
       </div>
     </div>
   </header>
@@ -1143,6 +1143,15 @@
     <div class="admin-status" id="adminStatus"></div>
     <button class="admin-save-btn" id="adminSaveBtn" onclick="saveAllToSupabase()">💾 I-SAVE LAHAT</button>
 
+    <!-- CUSTOM CLOSING TIME -->
+    <div class="admin-section" style="margin-top:22px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.1);">
+      <div class="admin-section-label">🕘 Palitan ang Closing Time (Ngayong Araw Lang)</div>
+      <input class="admin-input" type="time" id="adminCloseTime" style="margin-bottom:8px;"/>
+      <div class="admin-status" id="adminCloseStatus"></div>
+      <button class="admin-save-btn" id="adminCloseBtn" onclick="setCustomClosingTime()" style="margin-top:8px;">🕘 I-SET PARA NGAYON</button>
+      <button onclick="resetClosingTimeToDefault()" style="background:none;border:none;color:var(--muted);font-size:12px;font-family:'Share Tech Mono',monospace;cursor:pointer;letter-spacing:1px;margin-top:8px;">↺ IBALIK SA DEFAULT (9:00 PM)</button>
+    </div>
+
     <!-- CHANGE PASSWORD -->
     <div class="admin-section" style="margin-top:22px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.1);">
       <div class="admin-section-label">🔑 Baguhin ang Admin Password</div>
@@ -1237,9 +1246,15 @@
         if (row.id === 'game_alert_title')  document.getElementById('adminGameTitle').value     = row.value || '';
         if (row.id === 'game_alert_desc')   document.getElementById('adminGameDesc').value      = row.value || '';
         if (row.id === 'game_alert_img')    { adminImgBase64 = row.value || null; renderAdminImgPreview(); }
+        if (row.id === 'custom_close_time') {
+          const todayStr = window.getTodayStr ? window.getTodayStr() : new Date().toISOString().slice(0,10);
+          const [timeStr, dateStr] = (row.value || '').split('|');
+          document.getElementById('adminCloseTime').value = (dateStr === todayStr) ? (timeStr || '') : '';
+        }
       });
     }
     document.getElementById('adminStatus').textContent = '';
+    document.getElementById('adminCloseStatus').textContent = '';
     document.getElementById('adminPassStatus').textContent = '';
     document.getElementById('adminPassCurrent').value = '';
     document.getElementById('adminPassNew').value = '';
@@ -1347,6 +1362,54 @@
       status.textContent = '✕ Error: ' + err.message;
     }
     btn.disabled = false;
+  }
+
+  /* ══ CUSTOM CLOSING TIME (auto-resets to 9PM daily) ══ */
+  async function setCustomClosingTime() {
+    const timeVal = document.getElementById('adminCloseTime').value; // "HH:MM"
+    const status  = document.getElementById('adminCloseStatus');
+    const btn     = document.getElementById('adminCloseBtn');
+
+    if (!timeVal) {
+      status.className = 'admin-status err';
+      status.textContent = '✕ Pumili muna ng oras.';
+      return;
+    }
+
+    btn.disabled = true;
+    status.className = 'admin-status';
+    status.textContent = '⏳ Sine-save...';
+    try {
+      const todayStr = window.getTodayStr ? window.getTodayStr() : new Date().toISOString().slice(0,10);
+      const value = timeVal + '|' + todayStr;
+      const { error } = await sb.from('compshop_content')
+        .upsert({ id: 'custom_close_time', value, updated_at: new Date().toISOString() });
+      if (error) throw error;
+      const [hh, mm] = timeVal.split(':').map(Number);
+      if (window.applyCustomCloseTime) window.applyCustomCloseTime(hh, mm);
+      status.className = 'admin-status ok';
+      status.textContent = '✅ Na-set ang closing time para ngayong araw! Babalik sa 9:00 PM bukas.';
+    } catch(err) {
+      status.className = 'admin-status err';
+      status.textContent = '✕ Error: ' + err.message;
+    }
+    btn.disabled = false;
+  }
+
+  async function resetClosingTimeToDefault() {
+    const status = document.getElementById('adminCloseStatus');
+    try {
+      const { error } = await sb.from('compshop_content')
+        .upsert({ id: 'custom_close_time', value: '', updated_at: new Date().toISOString() });
+      if (error) throw error;
+      if (window.resetCloseTimeToDefault) window.resetCloseTimeToDefault();
+      document.getElementById('adminCloseTime').value = '';
+      status.className = 'admin-status ok';
+      status.textContent = '✅ Bumalik sa default na 9:00 PM.';
+    } catch(err) {
+      status.className = 'admin-status err';
+      status.textContent = '✕ Error: ' + err.message;
+    }
   }
 
   /* ══ CHANGE ADMIN PASSWORD ══ */
@@ -1485,8 +1548,45 @@
   /* ── CLOCK + COUNTDOWN ── */
   (function() {
     const OPEN_H = 7, OPEN_M = 0;
-    const CLOSE_H = 21, CLOSE_M = 0;
-    const TOTAL_MINS = (CLOSE_H * 60 + CLOSE_M) - (OPEN_H * 60 + OPEN_M);
+    const DEFAULT_CLOSE_H = 21, DEFAULT_CLOSE_M = 0; // default/fallback — bumabalik dito araw-araw
+    let CLOSE_H = DEFAULT_CLOSE_H, CLOSE_M = DEFAULT_CLOSE_M;
+    function todayStr() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+    function updateClosingLabel() {
+      let h = CLOSE_H % 12 || 12;
+      const ap = CLOSE_H >= 12 ? 'PM' : 'AM';
+      const label = document.getElementById('closingTimeLabel');
+      if (label) label.textContent = `🔒 Closes ${h}:${String(CLOSE_M).padStart(2,'0')} ${ap}`;
+    }
+
+    async function loadCustomCloseTime() {
+      try {
+        const { data, error } = await sb.from('compshop_content').select('value').eq('id','custom_close_time').single();
+        if (!error && data && data.value) {
+          const [timeStr, dateStr] = data.value.split('|');
+          if (dateStr === todayStr()) {
+            const [hh, mm] = timeStr.split(':').map(Number);
+            if (!isNaN(hh) && !isNaN(mm)) { CLOSE_H = hh; CLOSE_M = mm; }
+          }
+        }
+      } catch(e) { console.log('Custom close time load error:', e); }
+      updateClosingLabel();
+    }
+
+    // Ginagamit ng admin panel para i-apply agad ang bagong closing time nang hindi kailangang mag-refresh
+    window.applyCustomCloseTime = function(h, m) {
+      CLOSE_H = h; CLOSE_M = m;
+      updateClosingLabel();
+      tick();
+    };
+    window.resetCloseTimeToDefault = function() {
+      CLOSE_H = DEFAULT_CLOSE_H; CLOSE_M = DEFAULT_CLOSE_M;
+      updateClosingLabel();
+      tick();
+    };
+    window.getTodayStr = todayStr;
     const days = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
     const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
     const pad = n => String(n).padStart(2,'0');
@@ -1499,11 +1599,13 @@
       document.getElementById('clock').textContent = `${pad(h)}:${pad(m)}:${pad(s)} ${ap}`;
       document.getElementById('date').textContent =
         `${days[now.getDay()]} • ${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+      updateClosingLabel();
 
       const nowSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
       const closeSec = CLOSE_H * 3600 + CLOSE_M * 60;
       const diffSec = closeSec - nowSec;
       const nowMins = now.getHours() * 60 + now.getMinutes();
+      const TOTAL_MINS = (CLOSE_H * 60 + CLOSE_M) - (OPEN_H * 60 + OPEN_M);
       const elapsed = Math.min(Math.max(nowMins - (OPEN_H * 60 + OPEN_M), 0), TOTAL_MINS);
       const pct = Math.min(Math.round((elapsed / TOTAL_MINS) * 100), 100);
 
@@ -1546,6 +1648,7 @@
     }
 
     tick();
+    loadCustomCloseTime();
     setInterval(tick, 1000);
   })();
 
